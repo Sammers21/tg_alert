@@ -1,0 +1,56 @@
+group 'tg.alert'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'scala'
+apply plugin: 'idea'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+ext {
+    scala_version_major = "2.12"
+    scala_version_minor = "3"
+    scala_version = "$scala_version_major.$scala_version_minor"
+    main_class = "tg.alert.Main"
+}
+
+repositories {
+    mavenCentral()
+}
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+    }
+}
+
+dependencies {
+    // lib
+    compile "org.scala-lang:scala-library:$scala_version"
+    compile "info.mukel:telegrambot4s_$scala_version_major:3.0.9"
+    compile "io.vertx:vertx-lang-scala_$scala_version_major:3.4.2"
+
+    //logging
+    compile 'org.slf4j:slf4j-api:1.7.5'
+    compile 'org.slf4j:slf4j-simple:1.6.4'
+}
+
+// run application
+task run(type: JavaExec, dependsOn: classes) {
+    main = "$main_class"
+    classpath sourceSets.main.runtimeClasspath
+    classpath configurations.runtime
+}
+
+//create a single Jar with all dependencies
+shadowJar {
+    transform(com.github.jengelman.gradle.plugins.shadow.transformers.AppendingTransformer) {
+        resource = 'reference.conf'
+    }
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Jar File Example',
+                'Implementation-Version': version,
+                'Main-Class': "$main_class"
+    }
+}
